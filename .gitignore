@@ -1,0 +1,28 @@
+# Private configuration and subscription material
+config.yaml
+config.yaml.bak.*
+subscriptions.tsv
+secret
+providers/
+
+# Runtime and downloaded artifacts
+*.pid
+*.log
+*.db
+Country.mmdb
+country.mmdb
+geoip.dat
+geosite.dat
+GeoLite2-ASN.mmdb
+ui/
+ui_tmp.*/
+ui_backup.*/
+.subscription-txn.*/
+
+# Archives and editor files
+*.tar.gz
+*.zip
+*~
+.DS_Store
+.idea/
+.vscode/
