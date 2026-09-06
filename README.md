@@ -1,24 +1,26 @@
-# Mihomo Bash Kit
+# Mihomo Bash Kit 部署指南
 
-一套面向 Linux + Bash 的轻量 Mihomo 安装、订阅和进程管理脚本。
+这是一套用于 Linux + Bash 的 Mihomo 部署脚本。
 
-这个仓库只包含通用脚本，不包含任何个人订阅链接、代理节点、Controller 密钥、IP 地址、日志、缓存、Geo 数据库或 Web UI 构建产物。Mihomo 核心、Country.mmdb 和 MetaCubeXD 会在使用时从上游下载。
+发布包只包含安装、订阅、进程管理和 Bash 集成脚本，**不包含 Mihomo 可执行文件、个人订阅、代理节点、Controller 密钥、Geo 数据库或 Web UI**。部署时，脚本会按“镜像地址优先、GitHub 官方地址兜底”的顺序下载所需文件。
 
-## 功能
+## 默认配置
 
-- 安装 Mihomo（支持 `x86_64/amd64` 和 `aarch64/arm64`）
-- 下载 Country.mmdb 和 MetaCubeXD Web UI
-- 添加、更新、删除和列出 URL/本地文件订阅
-- 自动生成并校验 `config.yaml`
-- 启动、停止、重启、检查状态、查看日志和测试代理
-- 自动接入 `.bashrc`，提供 `mihomo-*` 与 `proxy-*` 命令
-- 安装时生成独立 Controller 密钥
+部署后默认使用以下配置：
 
-## 环境要求
+| 项目 | 默认值 |
+| --- | --- |
+| Mihomo 配置目录 | `~/.mihomo` |
+| Mihomo 用户级安装位置 | `~/.local/bin/mihomo` |
+| 混合代理地址 | `http://127.0.0.1:6669` |
+| Controller | `127.0.0.1:9090` |
+| DNS 监听 | `127.0.0.1:1053` |
+| Web UI | `http://127.0.0.1:9090/ui/` |
+| Controller 密钥 | `~/.mihomo/secret` |
 
-- Linux、Bash
-- 常用命令：`curl`、`gzip`、`git`、`coreutils`
-- 可选：`sudo`（系统级安装）、`openssl`（生成随机密钥）
+默认只允许本机访问，不会直接向局域网或公网开放端口。
+
+## 第 1 步：安装系统依赖
 
 Debian/Ubuntu：
 
@@ -27,176 +29,271 @@ sudo apt update
 sudo apt install -y curl gzip git ca-certificates coreutils iproute2
 ```
 
-## 安装
+脚本支持以下 CPU 架构：
+
+- `x86_64` / `amd64`
+- `aarch64` / `arm64`
+
+## 第 2 步：获取部署包
+
+从 GitHub 克隆：
 
 ```bash
 git clone git@github.com:xqy-2025/mihomo-bash-kit.git
 cd mihomo-bash-kit
+```
+
+如果使用下载的压缩包：
+
+```bash
+tar -xzf mihomo-bash-kit-20260906.tar.gz
+cd mihomo-bash-kit
+```
+
+## 第 3 步：安装管理脚本和 Bash 命令
+
+执行：
+
+```bash
 ./install.sh
 source ~/.bashrc
 ```
 
-安装器会把通用脚本复制到 `${MIHOMO_HOME:-$HOME/.mihomo}`，但会保留该目录中已有的订阅、配置、密钥和运行数据。
+安装器会：
 
-然后安装组件：
+1. 把核心脚本复制到 `~/.mihomo`。
+2. 自动生成 `~/.mihomo/secret`，权限设为 `0600`。
+3. 在 `~/.bashrc` 中加入 Mihomo 加载入口。
+4. 提供 `mihomo-start`、`mihomo-stop`、`proxy-on` 等命令。
+
+重复运行 `./install.sh` 不会重复写入 Bash 配置，也不会覆盖已有订阅、配置、密钥或运行数据。
+
+## 第 4 步：下载并安装 Mihomo
+
+发布包中没有 Mihomo 二进制，需要执行：
 
 ```bash
 bash ~/.mihomo/install_mihomo.sh
+```
+
+脚本默认安装 Mihomo `v1.19.27`，并按以下顺序尝试下载：
+
+1. `gh.llkk.cc` 镜像
+2. `gh-proxy.com` 镜像
+3. `ghfast.top` 镜像
+4. `hub.gitmirror.com` 镜像
+5. GitHub 官方 Release 地址
+
+普通用户存在 `sudo` 时，脚本优先安装到：
+
+```text
+/usr/local/bin/mihomo
+```
+
+没有 `sudo` 或授权失败时，会安装到：
+
+```text
+~/.local/bin/mihomo
+```
+
+如需安装其他版本：
+
+```bash
+MIHOMO_VER=v1.19.27 bash ~/.mihomo/install_mihomo.sh
+```
+
+将 `v1.19.27` 替换为目标版本号即可。
+
+如果所有自动下载地址都不可用，也可以从 [Mihomo 官方 Releases](https://github.com/MetaCubeX/mihomo/releases) 手动下载对应架构的 Linux 压缩包，然后安装：
+
+```bash
+gzip -dc mihomo-linux-amd64-VERSION.gz > mihomo
+chmod 0755 mihomo
+mkdir -p ~/.local/bin
+install -m 0755 mihomo ~/.local/bin/mihomo
+mihomo -v
+```
+
+ARM64 用户需要把文件名中的 `amd64` 换成 `arm64`。
+
+## 第 5 步：下载 Geo 数据
+
+执行：
+
+```bash
 bash ~/.mihomo/install_geo.sh
+```
+
+该脚本会下载 `Country.mmdb`，同样先尝试镜像地址，最后尝试 GitHub 官方地址，并安装到 `~/.mihomo`。
+
+如果自动下载失败，可以从 [Meta rules dat Releases](https://github.com/MetaCubeX/meta-rules-dat/releases) 手动下载 `country.mmdb`，然后执行：
+
+```bash
+install -m 0644 country.mmdb ~/.mihomo/Country.mmdb
+install -m 0644 country.mmdb ~/.mihomo/country.mmdb
+```
+
+## 第 6 步：安装 Web UI
+
+执行：
+
+```bash
 bash ~/.mihomo/install_ui.sh
 ```
 
-如需把 Mihomo 安装到用户目录而不使用系统目录，可以在没有 `sudo` 的环境运行；脚本会回退到 `~/.local/bin/mihomo`。
+脚本会先通过镜像克隆 MetaCubeXD 的 `gh-pages` 分支，全部镜像失败后再访问 GitHub 官方仓库。
 
-## 添加订阅
+Web UI 是可选组件；不安装 Web UI 也可以正常使用 Mihomo 代理和命令行管理功能。
 
-URL 订阅（请保留引号，避免 shell 解释链接中的特殊字符）：
+## 第 7 步：增加订阅
 
-```bash
-bash ~/.mihomo/sub_add.sh my-sub url 'https://example.invalid/subscription?token=REPLACE_ME'
-```
-
-本地 Provider 文件：
+增加 URL 订阅：
 
 ```bash
-bash ~/.mihomo/sub_add.sh local-sub file '/path/to/provider.yaml'
+bash ~/.mihomo/sub_add.sh my-sub url 'https://example.com/你的订阅链接'
 ```
 
-查看和删除：
+请务必用单引号包住订阅链接，避免 `&` 等字符被 Bash 解释。将 `my-sub` 换成便于识别的订阅名称；名称只能包含英文、数字、下划线、点和短横线。
+
+例如增加第二个订阅：
+
+```bash
+bash ~/.mihomo/sub_add.sh backup-sub url 'https://example.com/另一个订阅链接'
+```
+
+增加本地 Provider 文件：
+
+```bash
+bash ~/.mihomo/sub_add.sh local-sub file '/完整路径/provider.yaml'
+```
+
+查看已有订阅：
 
 ```bash
 bash ~/.mihomo/sub_manage.sh list
+```
+
+URL 会保存在本机的 `~/.mihomo/subscriptions.tsv` 中。查看列表时会隐藏 URL，避免直接显示 Token。
+
+如果需要更新某个订阅，使用相同名称重新执行增加命令：
+
+```bash
+bash ~/.mihomo/sub_add.sh my-sub url 'https://example.com/更新后的订阅链接'
+```
+
+删除订阅：
+
+```bash
 bash ~/.mihomo/sub_del.sh my-sub
 ```
 
-URL 会保存在本机的 `~/.mihomo/subscriptions.tsv` 中，`list` 命令不会显示 URL。不要把该文件提交到 Git；仓库的 `.gitignore` 已默认排除它。
+每次增加、更新或删除订阅时，脚本都会重新生成 `~/.mihomo/config.yaml`。如果已经安装 Mihomo，还会自动检查新配置是否有效。
 
-## 启动与日常使用
+## 第 8 步：检查配置并启动
+
+先检查：
 
 ```bash
 mihomo-check
-mihomo-start
-mihomo-status
-mihomo-log
-mihomo-log -f
-mihomo-test
-mihomo-restart
-mihomo-stop
 ```
 
-当前终端的代理环境：
+检查通过后启动：
+
+```bash
+mihomo-start
+```
+
+查看状态：
+
+```bash
+mihomo-status
+```
+
+测试代理：
+
+```bash
+mihomo-test
+proxy-test
+```
+
+启动成功后，当前终端会自动设置代理环境。也可以手动控制：
 
 ```bash
 proxy-on
 proxy-status
-proxy-test
 proxy-off
 ```
 
-默认混合代理地址为 `http://127.0.0.1:6669`，默认 Controller 地址为 `127.0.0.1:9090`，DNS 监听为 `127.0.0.1:1053`。如果修改端口，可在添加/更新订阅时设置：
+## 第 9 步：打开 Web UI
 
-```bash
-MIHOMO_MIXED_PORT=7890 \
-MIHOMO_CONTROLLER_PORT=9091 \
-MIHOMO_DNS_PORT=1054 \
-bash ~/.mihomo/sub_add.sh my-sub url 'https://example.invalid/subscription'
-```
-
-同时把 shell 代理地址设置为一致的值，例如加入 `.bashrc`：
-
-```bash
-export PROXY_ADDR=http://127.0.0.1:7890
-```
-
-## Web UI 与局域网访问
-
-本机 Web UI：
+如果已经执行第 6 步，在本机浏览器打开：
 
 ```text
 http://127.0.0.1:9090/ui/
 ```
 
-Controller 密钥保存在：
+Web UI 要求输入 Controller 密钥时，执行：
 
-```text
-~/.mihomo/secret
+```bash
+cat ~/.mihomo/secret
 ```
 
-默认只允许本机访问。确实需要在可信局域网开放时，用以下环境变量重新添加或更新任意订阅，以重建配置：
+不要把该密钥、`config.yaml`、`subscriptions.tsv` 或 `providers/` 上传到 GitHub。
+
+## 第 10 步：日常管理命令
+
+```bash
+mihomo-start       # 启动
+mihomo-stop        # 停止
+mihomo-restart     # 重启
+mihomo-status      # 查看状态
+mihomo-check       # 检查程序和配置
+mihomo-log         # 查看最近日志
+mihomo-log -f      # 持续查看日志
+mihomo-test        # 测试代理访问
+proxy-on           # 为当前终端开启代理环境变量
+proxy-off          # 清除当前终端代理环境变量
+proxy-status       # 查看当前代理环境
+```
+
+## 可选：修改端口
+
+在增加或更新订阅时指定端口：
+
+```bash
+MIHOMO_MIXED_PORT=7890 \
+MIHOMO_CONTROLLER_PORT=9091 \
+MIHOMO_DNS_PORT=1054 \
+bash ~/.mihomo/sub_add.sh my-sub url 'https://example.com/你的订阅链接'
+```
+
+如果修改混合代理端口，还需要在 `~/.bashrc` 中设置相同的地址：
+
+```bash
+export PROXY_ADDR=http://127.0.0.1:7890
+```
+
+然后重新加载：
+
+```bash
+source ~/.bashrc
+```
+
+## 可选：允许可信局域网访问
+
+默认配置最安全，只允许本机访问。确实需要局域网访问时，使用以下参数重新增加或更新订阅：
 
 ```bash
 MIHOMO_ALLOW_LAN=true \
 MIHOMO_BIND_ADDRESS='*' \
 MIHOMO_CONTROLLER_HOST=0.0.0.0 \
-bash ~/.mihomo/sub_add.sh my-sub url 'https://example.invalid/subscription'
+bash ~/.mihomo/sub_add.sh my-sub url 'https://example.com/你的订阅链接'
 ```
 
-局域网模式会暴露代理端口与 Controller，请确保密钥未泄露，并使用主机防火墙限制可信网段。不要把 Controller 直接暴露到公网。
-
-## 自定义目录
+随后重启：
 
 ```bash
-MIHOMO_HOME="$HOME/apps/mihomo" ./install.sh
+mihomo-restart
 ```
 
-需要长期使用自定义目录时，在加载 `mihomo.bash` 之前设置并导出 `MIHOMO_HOME`。
-
-## 目录说明
-
-仓库内容：
-
-```text
-.
-├── install.sh              # 部署脚本并接入 .bashrc
-├── shell/mihomo.bash       # Bash 函数与别名
-└── scripts/
-    ├── install_mihomo.sh   # Mihomo 核心安装器
-    ├── install_geo.sh      # Country.mmdb 安装器
-    ├── install_ui.sh       # MetaCubeXD 安装器
-    ├── mihomo_ctl.sh       # 进程和状态管理
-    ├── sub_manage.sh       # 订阅与配置管理
-    ├── sub_add.sh          # 添加订阅快捷入口
-    └── sub_del.sh          # 删除订阅快捷入口
-```
-
-运行后生成但不应提交的内容包括：
-
-```text
-config.yaml  subscriptions.tsv  secret  providers/
-*.log  *.pid  *.db  Country.mmdb  country.mmdb  ui/
-```
-
-## 更新
-
-拉取新版本后重新运行：
-
-```bash
-git pull
-./install.sh
-```
-
-安装器只更新工具脚本和 Bash 集成，不会覆盖已有 `config.yaml`、订阅、Provider、密钥、日志或数据库。
-
-## 发布到 GitHub
-
-确认隐私检查通过后，可执行：
-
-```bash
-git init
-git add .
-git status
-git commit -m "Initial public release"
-git branch -M main
-git remote add origin git@github.com:xqy-2025/mihomo-bash-kit.git
-git push -u origin main
-```
-
-在 `git status` 和 `git diff --cached` 中再次确认没有 `config.yaml`、`subscriptions.tsv`、`providers/` 或 `secret` 后再推送。
-
-## 上游项目
-
-- Mihomo: <https://github.com/MetaCubeX/mihomo>
-- MetaCubeXD: <https://github.com/MetaCubeX/metacubexd>
-- Meta rules dat: <https://github.com/MetaCubeX/meta-rules-dat>
-
-本仓库不打包或重新分发上述项目的二进制与数据文件。
+局域网模式会开放代理端口和 Controller。请保管好 `~/.mihomo/secret`，使用防火墙限制可信网段，不要直接暴露到公网。
