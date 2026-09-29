@@ -107,9 +107,9 @@ echo "[STEP] $STEP"
 
 # 镜像优先，GitHub 最后
 REPOS=(
+    "https://gh-proxy.com/https://github.com/MetaCubeX/metacubexd.git"
     "https://hub.gitmirror.com/https://github.com/MetaCubeX/metacubexd.git"
     "https://gh.llkk.cc/https://github.com/MetaCubeX/metacubexd.git"
-    "https://gh-proxy.com/https://github.com/MetaCubeX/metacubexd.git"
     "https://ghfast.top/https://github.com/MetaCubeX/metacubexd.git"
     "https://github.com/MetaCubeX/metacubexd.git"
 )

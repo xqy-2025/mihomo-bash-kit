@@ -85,9 +85,9 @@ bash ~/.mihomo/install_mihomo.sh
 
 脚本默认安装 Mihomo `v1.19.27`，并按以下顺序尝试下载：
 
-1. `hub.gitmirror.com` 镜像
-2. `gh.llkk.cc` 镜像
-3. `gh-proxy.com` 镜像
+1. `gh-proxy.com` 镜像
+2. `hub.gitmirror.com` 镜像
+3. `gh.llkk.cc` 镜像
 4. `ghfast.top` 镜像
 5. GitHub 官方 Release 地址
 

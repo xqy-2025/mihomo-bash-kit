@@ -216,9 +216,9 @@ ORIGIN_URL="https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest
 
 # 固定顺序：镜像优先，GitHub 原始地址最后
 URLS=(
+    "https://gh-proxy.com/$ORIGIN_URL"
     "https://hub.gitmirror.com/$ORIGIN_URL"
     "https://gh.llkk.cc/$ORIGIN_URL"
-    "https://gh-proxy.com/$ORIGIN_URL"
     "https://ghfast.top/$ORIGIN_URL"
     "$ORIGIN_URL"
 )
