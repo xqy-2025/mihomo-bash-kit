@@ -198,38 +198,25 @@ bash ~/.mihomo/sub_del.sh my-sub
 
 ## 第 8 步：检查配置并启动
 
-先检查：
+检查 Mihomo 程序和配置：
 
 ```bash
 mihomo-check
 ```
 
-检查通过后启动：
+检查通过后启动 Mihomo：
 
 ```bash
 mihomo-start
 ```
 
-查看状态：
+确认运行状态和监听端口：
 
 ```bash
 mihomo-status
 ```
 
-测试代理：
-
-```bash
-mihomo-test
-proxy-test
-```
-
-启动成功后，当前终端会自动设置代理环境。也可以手动控制：
-
-```bash
-proxy-on
-proxy-status
-proxy-off
-```
+此时先确认 Mihomo 正常运行。代理连通性测试放到完成 Web UI 登录和节点选择之后。
 
 ## 第 9 步：从 Windows 通过 SSH 访问 Web UI
 
