@@ -22,11 +22,18 @@
 
 ## 第 1 步：安装系统依赖
 
-Debian/Ubuntu：
+Debian/Ubuntu 普通用户（可以使用 `sudo`）：
 
 ```bash
 sudo apt update
 sudo apt install -y curl gzip git ca-certificates coreutils iproute2
+```
+
+已经切换到 `root` 用户时，不要加 `sudo`：
+
+```bash
+apt update
+apt install -y curl gzip git ca-certificates coreutils iproute2
 ```
 
 脚本支持以下 CPU 架构：
@@ -39,7 +46,7 @@ sudo apt install -y curl gzip git ca-certificates coreutils iproute2
 从 GitHub 克隆：
 
 ```bash
-git clone git@github.com:xqy-2025/mihomo-bash-kit.git
+git clone https://github.com/xqy-2025/mihomo-bash-kit.git
 cd mihomo-bash-kit
 ```
 
@@ -78,10 +85,10 @@ bash ~/.mihomo/install_mihomo.sh
 
 脚本默认安装 Mihomo `v1.19.27`，并按以下顺序尝试下载：
 
-1. `gh.llkk.cc` 镜像
-2. `gh-proxy.com` 镜像
-3. `ghfast.top` 镜像
-4. `hub.gitmirror.com` 镜像
+1. `hub.gitmirror.com` 镜像
+2. `gh.llkk.cc` 镜像
+3. `gh-proxy.com` 镜像
+4. `ghfast.top` 镜像
 5. GitHub 官方 Release 地址
 
 普通用户存在 `sudo` 时，脚本优先安装到：

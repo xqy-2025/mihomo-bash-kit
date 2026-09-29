@@ -150,10 +150,10 @@ rm -f "$TMP_GZ"
 
 # 固定下载顺序：先尝试镜像，最后尝试 GitHub 原始地址
 MIRRORS=(
+    "https://hub.gitmirror.com/"
     "https://gh.llkk.cc/"
     "https://gh-proxy.com/"
     "https://ghfast.top/"
-    "https://hub.gitmirror.com/"
     ""
 )
 
