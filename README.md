@@ -231,23 +231,80 @@ proxy-status
 proxy-off
 ```
 
-## 第 9 步：打开 Web UI
+## 第 9 步：从 Windows 通过 SSH 访问 Web UI
 
-如果已经执行第 6 步，在本机浏览器打开：
+Mihomo 默认只监听服务器本机的 `127.0.0.1`。Windows 不需要开放服务器的 `9090` 端口，也不需要启用局域网访问；使用 SSH 本地端口转发更安全。
+
+在 Windows PowerShell 或 Windows Terminal 中执行：
+
+```powershell
+ssh -N -T `
+  -o ExitOnForwardFailure=yes `
+  -o ServerAliveInterval=30 `
+  -L 9090:127.0.0.1:9090 `
+  用户名@服务器IP
+```
+
+把 `用户名` 和 `服务器IP` 换成实际 SSH 登录信息。命令运行后窗口不会返回提示符，这是正常现象；请保持该窗口打开。
+
+如果 SSH 服务不是默认的 `22` 端口，例如使用 `2222`：
+
+```powershell
+ssh -p 2222 -N -T `
+  -o ExitOnForwardFailure=yes `
+  -o ServerAliveInterval=30 `
+  -L 9090:127.0.0.1:9090 `
+  用户名@服务器IP
+```
+
+隧道建立后，在 Windows 浏览器打开：
 
 ```text
 http://127.0.0.1:9090/ui/
 ```
 
-Web UI 要求输入 Controller 密钥时，执行：
+如果还希望让 Windows 软件使用服务器上的 Mihomo 代理，可以同时转发 `6669`：
+
+```powershell
+ssh -N -T `
+  -o ExitOnForwardFailure=yes `
+  -o ServerAliveInterval=30 `
+  -L 9090:127.0.0.1:9090 `
+  -L 6669:127.0.0.1:6669 `
+  用户名@服务器IP
+```
+
+此时 Windows 上的代理地址为 `127.0.0.1:6669`。结束使用时，在 SSH 窗口按 `Ctrl+C` 关闭隧道。
+
+## 第 10 步：填写 Controller Secret
+
+在 Mihomo 服务器的终端中读取密钥：
 
 ```bash
 cat ~/.mihomo/secret
 ```
 
-不要把该密钥、`config.yaml`、`subscriptions.tsv` 或 `providers/` 上传到 GitHub。
+回到 Windows 浏览器中的 MetaCubeXD：
 
-## 第 10 步：日常管理命令
+1. 后端地址保持为 `http://127.0.0.1:9090`。
+2. 把命令输出的完整内容粘贴到“密钥”输入框。
+3. 点击“连接”。
+
+![在 MetaCubeXD 的密钥输入框中填写 Controller Secret](docs/images/enter-controller-secret.png)
+
+不要把该密钥、`config.yaml`、`subscriptions.tsv` 或 `providers/` 上传到 GitHub，也不要把真实密钥截进公开图片。
+
+## 第 11 步：在 Web UI 中选择代理节点
+
+连接 MetaCubeXD 后，进入左侧的“代理”页面：
+
+1. 在 `Proxy` 策略组中选择需要使用的实际代理节点。
+2. 在 `Final` 策略组中选择 `Proxy`。
+3. 如果希望自动选择延迟较低的节点，可以在 `Final` 中改选 `Auto`。
+
+![先在 Proxy 中选择节点，再在 Final 中选择 Proxy](docs/images/select-proxy-and-final.png)
+
+## 第 12 步：日常管理命令
 
 ```bash
 mihomo-start       # 启动
